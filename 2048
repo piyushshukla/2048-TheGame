@@ -1,0 +1,598 @@
+#include<iostream>
+using namespace std;
+#include<iomanip>
+#include<stdlib.h>
+#include<conio.h>
+#include<windows.h>
+#include<string.h>
+#include<stdio.h>
+
+int gameMatrix[4][4];
+static int score;
+bool gameMatrixAffected,win;
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+void displayHomeScreen();
+void initializeGame();
+bool game();
+void displayHeader();
+void displayGameMatrix();
+void printElement(int);
+void shiftUp();
+void shiftLeft();
+void shiftRight();
+void shiftDown();
+void updateScore(int,int);
+void insertNewNumber();
+void displayGameEndMessage();
+void displayInstructions();
+
+int main()
+{
+	char option,ch;
+	while(true)
+	{
+		home:
+		score=0;		
+		displayHomeScreen();
+		
+		//cin>>option;
+		option=getche();
+		switch(option)
+		{
+			case '1':
+				initializeGame();
+				while(game())
+				{
+					gameMatrixAffected=false;
+					displayHeader();
+					displayGameMatrix();
+					cout<<"\n\t\t\tType HOME to go to home screen..";
+					
+					ch=getch();
+					start:
+					if(ch=='h'||ch=='H')
+					{
+						ch=getch();
+						if(ch=='o'||ch=='O')
+						{
+							ch=getch();
+							if(ch=='m'||ch=='M')
+							{
+								ch=getch();
+								if(ch=='e'||ch=='E')
+								{
+									goto home;
+								}
+								goto start;
+							}
+							goto start;
+						}
+						goto start;
+					}
+					if((ch!='w')&&(ch!='W')&&(ch!='a')&&(ch!='A')&&(ch!='s')&&(ch!='S')&&(ch!='d')&&(ch!='D'))
+					{
+						ch=getch();
+						goto start;
+					}
+					else
+					{
+						if((ch=='w')||(ch=='W'))
+							shiftUp();
+						else if((ch=='a')||(ch=='A'))
+							shiftLeft();
+						else if((ch=='s')||(ch=='S'))
+							shiftDown();
+						else
+							shiftRight();
+					}
+					
+					if(gameMatrixAffected)
+						insertNewNumber();
+					
+					displayHeader();
+					displayGameMatrix();
+				}
+				
+				displayGameEndMessage();
+				getch();
+				break;
+			
+			case '2':
+				displayInstructions();
+				break;
+			
+			case '3': 
+				cout<<"\n\t\t\t    Exiting From The Game!!";
+				getch();
+				exit(0);
+				break;
+			
+			default: 
+				cout<<"\n\t\t\t\tInvalid Choice!!";
+				break;
+		}
+		
+		getch();
+	}
+	
+	return(0);
+}
+
+void print2048()
+{
+	cout<<"       \t\t2222222	   0000000     4     4     8888888\n";
+	cout<<"       \t\t      2	   0	 0     4     4     8     8\n";
+	cout<<"       \t\t      2	   0	 0     4     4     8     8\n";
+	cout<<"       \t\t      2	   0     0     4     4     8     8\n";
+	cout<<"       \t\t2222222	   0     0     4444444     8888888\n";
+	cout<<"       \t\t2      	   0	 0           4     8     8\n";
+	cout<<"       \t\t2     	   0	 0           4     8     8\n";
+	cout<<"       \t\t2     	   0	 0           4     8     8\n";
+	cout<<"       \t\t2222222	   0000000           4     8888888\n";
+}
+
+void displayHomeScreen()
+{
+	SetConsoleTextAttribute(hConsole, 7);
+	system("cls");
+	print2048();
+	cout<<endl<<endl<<endl<<endl;
+	cout<<"\t\t\t\t1. NEW GAME\n";
+	cout<<"\t\t\t\t2. INSTRUCTIONS\n";
+	cout<<"\t\t\t\t3. EXIT\n";
+	cout<<endl<<"\t\t\t\tChoice:- ";
+}
+
+void initializeGame()
+{
+	int i,j;
+	
+	win=false;
+	for(i=0;i<4;i++)
+	{
+		for(j=0;j<4;j++)
+		{
+			gameMatrix[i][j]=0;
+		}
+	}
+	i=0;
+	j=0;
+	if(rand()%2==0)
+	{
+		gameMatrix[i][j]=2;
+	}
+	else
+	{
+		gameMatrix[i][j]=4;
+	}
+	i=1;
+	j=1;
+	if(rand()%2==0)
+		gameMatrix[i][j]=4;
+	else
+		gameMatrix[i][j]=2;
+	
+}
+
+bool game()
+{
+	int i,j,c=0;
+	for(i=0;i<4;i++)
+	{
+		for(j=0;j<4;j++)
+		{
+			if(gameMatrix[i][j]!=0)
+			{
+				if(gameMatrix[i][j]==2048)
+				{
+					win=true;
+				}
+				c++;	
+			}
+		}
+	}
+	if(c==16)
+	{
+		for(i=0;i<4;i++)
+		{
+			int j=0;
+			while(j<3)
+			{
+				if(gameMatrix[i][j]==gameMatrix[i][j+1])
+				{
+					return(true);
+				}
+				j++;
+			}
+			j=0;
+			while(j<3)
+			{
+				if(gameMatrix[j][i]==gameMatrix[j+1][i])
+				{
+					return(true);
+				}
+				j++;		
+			}
+		}
+		return(false);
+	}
+	else
+	{
+		return(true);
+	}
+}
+
+void displayHeader()
+{
+	SetConsoleTextAttribute(hConsole, 7);
+	system("cls");
+	print2048();
+	cout<<endl<<endl<<endl<<endl;
+	SetConsoleTextAttribute(hConsole, 12);
+	cout<<"\t\t\t\t SCORE: "<<score<<endl;
+}
+
+void displayGameMatrix()
+{
+	for(int i=0;i<4;i++)
+	{
+		SetConsoleTextAttribute(hConsole, 7);
+		cout<<endl<<"\t\t\t    ";
+		for(int j=0;j<4;j++)
+		{
+			printElement(gameMatrix[i][j]);
+		}
+		SetConsoleTextAttribute(hConsole, 7);
+		cout<<endl;
+	}
+}
+
+void printElement(int element)
+{	
+	if(element==0)
+	{
+		SetConsoleTextAttribute(hConsole, 240);
+		cout<<"     ";
+	}
+	else if(element==2)
+	{
+		SetConsoleTextAttribute(hConsole, 112);
+		cout<<"  2  ";
+	}
+	else if(element==4)
+	{
+		SetConsoleTextAttribute(hConsole, 128);
+		cout<<"  4  ";
+	}
+	else if(element==8)
+	{
+		SetConsoleTextAttribute(hConsole, 160);
+		cout<<"  8  ";
+	}
+	else if(element==16)
+	{
+		SetConsoleTextAttribute(hConsole, 176);
+		cout<<"  16 ";
+	}
+	else if(element==32)
+	{
+		SetConsoleTextAttribute(hConsole, 158);
+		cout<<"  32 ";
+	}
+	else if(element==64)
+	{
+		SetConsoleTextAttribute(hConsole, 28);
+		cout<<"  64 ";
+	}
+	else if(element==128)
+	{
+		SetConsoleTextAttribute(hConsole, 224);
+		cout<<" 128 ";
+	}
+	else if(element==256)
+	{
+		SetConsoleTextAttribute(hConsole, 223);
+		cout<<" 256 ";
+	}
+	else if(element==512)
+	{
+		SetConsoleTextAttribute(hConsole, 79);
+		cout<<" 512 ";
+	}
+	else if(element==1024)
+	{
+		SetConsoleTextAttribute(hConsole, 78);
+		cout<<" 1024";
+	}
+	else if(element==2048)
+	{
+		SetConsoleTextAttribute(hConsole, 207);
+		cout<<" 2048";
+	}
+	else
+	{
+		SetConsoleTextAttribute(hConsole, 192);
+		cout<<setw(5)<<element;
+	}
+}
+
+void shiftUp()
+{
+	int i,j,p,x;
+	for(j=0;j<4;j++)
+	{
+		i=0;
+		while(i<3)
+		{
+			p=i+1;
+			while(p<4)
+			{
+				if(gameMatrix[p][j]!=0)
+					break;
+				else
+					p++;
+			}
+			if(gameMatrix[i][j]==gameMatrix[p][j])
+			{
+				gameMatrix[i][j]=gameMatrix[i][j]+gameMatrix[p][j];
+				gameMatrix[p][j]=0;
+				updateScore(i,j);	
+			}
+			i++;
+		}
+	}
+	for(j=0;j<4;j++)
+	{
+		x=0;
+		for(i=0;i<4;i++)
+		{
+			if(gameMatrix[i][j]!=0)
+			{
+				gameMatrix[x][j]=gameMatrix[i][j];
+				if(x!=i)
+					gameMatrixAffected=true;
+				x++;
+				
+			}
+		}
+		while(x<4)
+		{
+			gameMatrix[x][j]=0;
+			x++;
+	 	}
+	}
+}
+
+void shiftLeft()
+{
+	int i,j,p,x;
+	for(i=0;i<4;i++)
+	{
+		j=0;
+		while(j<3)
+		{
+			p=j+1;
+			while(p<4)
+			{
+				if(gameMatrix[i][p]!=0)
+					break;
+				else
+					p++;	
+				
+			}
+			if(p<4)
+			{
+				if(gameMatrix[i][j]==gameMatrix[i][p])
+				{
+					gameMatrix[i][j]=gameMatrix[i][j]+gameMatrix[i][p];
+					gameMatrix[i][p]=0;
+					updateScore(i,j);
+				}
+			}								
+			j++;
+		}
+	}
+	for(i=0;i<4;i++)
+	{
+		x=0;
+		for(j=0;j<4;j++)
+		{
+			if(gameMatrix[i][j]!=0)
+			{
+				gameMatrix[i][x]=gameMatrix[i][j];
+				if(x!=j)
+					gameMatrixAffected=true;
+				x++;
+				
+			}
+		}
+		while(x<4)
+		{
+			gameMatrix[i][x]=0;
+			x++;
+		}
+	}
+}
+
+void shiftDown()
+{
+	int i,j,p,x;
+	for(j=0;j<4;j++)
+	{
+		i=3;
+		while(i>0)
+		{
+			p=i-1;
+			while(p>=0)
+			{
+				if(gameMatrix[p][j]!=0)
+					break;
+				else
+					p--;						
+			}
+			if(gameMatrix[i][j]==gameMatrix[p][j])
+			{
+				gameMatrix[i][j]=gameMatrix[i][j]+gameMatrix[p][j];
+				gameMatrix[p][j]=0;
+				updateScore(i,j);
+			}
+			i--;
+		}				
+	}
+	for(j=0;j<4;j++)
+	{
+		x=3;
+		for(i=3;i>=0;i--)
+		{
+			if(gameMatrix[i][j]!=0)
+			{
+				gameMatrix[x][j]=gameMatrix[i][j];
+				if(x!=i)
+					gameMatrixAffected=true;
+				x--;
+			}
+		}
+		while(x>=0)
+		{
+			gameMatrix[x][j]=0;
+			x--;
+		}
+	}
+}
+
+void shiftRight()
+{
+	int i,j,p,x;
+	for(i=0;i<4;i++)
+	{
+		j=3;
+		while(j>0)
+		{
+			p=j-1;
+			while(p>=0)
+			{
+				if(gameMatrix[i][p]!=0)
+					break;
+				else
+					p--;
+			}
+			if(gameMatrix[i][j]==gameMatrix[i][p])
+			{
+				gameMatrix[i][j]=gameMatrix[i][j]+gameMatrix[i][p];
+				gameMatrix[i][p]=0;
+				updateScore(i,j);
+			}
+			j--;
+		}
+	}
+	for(i=0;i<4;i++)
+	{
+		x=3;
+		for(j=3;j>=0;j--)
+		{
+			if(gameMatrix[i][j]!=0)
+			{
+				gameMatrix[i][x]=gameMatrix[i][j];
+				if(x!=j)
+					gameMatrixAffected=true;
+				x--;
+			}
+		}
+		while(x>=0)
+		{
+			gameMatrix[i][x]=0;
+			x--;
+		}
+	}
+}
+
+void updateScore(int i,int j)
+{
+	score=score+gameMatrix[i][j];
+	if(gameMatrix[i][j]!=0)
+	{
+		Beep(523,100);
+		gameMatrixAffected=true;
+	}
+}
+
+void insertNewNumber()
+{
+	int i,j,p;
+	p=rand()%2;
+	if(p)
+	{
+		for(i=0;i<4;i++)
+		{
+			for(j=0;j<4;j++)
+			{
+				if(gameMatrix[i][j]==0)
+				{
+					gameMatrix[i][j]=4;
+					return;
+				}
+			}
+		}
+	}
+	else
+	{
+		for(i=3;i>=0;i--)
+		{
+			for(j=3;j>=0;j--)
+			{
+				if(gameMatrix[i][j]==0)
+				{
+					gameMatrix[i][j]=2;
+					return;
+				}
+			}
+		}
+	}
+}
+
+void displayGameEndMessage()
+{
+	SetConsoleTextAttribute(hConsole, 7);
+	cout<<"\t\t\t      ";
+	SetConsoleTextAttribute(hConsole, 192);
+	cout<<"*** GAME OVER ***";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout<<"\n\t\t\t        ";
+	SetConsoleTextAttribute(hConsole, 192);
+	cout<<"SCORE:- "<<score;
+	SetConsoleTextAttribute(hConsole, 7);	
+	if(win)
+	{
+		SetConsoleTextAttribute(hConsole, 7);
+		cout<<"\n\t\t";
+		SetConsoleTextAttribute(hConsole, 192);
+		cout<<"Congratulations!! You made the 2048 tile :) ";
+		SetConsoleTextAttribute(hConsole, 7);
+	}
+}
+
+void displayInstructions()
+{
+	SetConsoleTextAttribute(hConsole, 7);
+	system("cls");
+	print2048();
+	cout<<endl<<endl<<endl;
+	SetConsoleTextAttribute(hConsole, 7);
+	cout<<"\n\t\t\t\t";
+	SetConsoleTextAttribute(hConsole, 206);
+	cout<<"HOW TO PLAY\n";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout<<"\n\t  ";
+	SetConsoleTextAttribute(hConsole, 236);
+	cout<<"Press W(UP),A(LEFT),S(DOWN),D(RIGHT) to move the tiles.";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout<<"\n     ";
+	SetConsoleTextAttribute(hConsole, 236);
+	cout<<"When two tiles with the same number touch, they merge into one.";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout<<"\n\t\t";
+	SetConsoleTextAttribute(hConsole, 236);
+	cout<<"When 2048 tile is created , the player wins!!";
+	SetConsoleTextAttribute(hConsole, 7);
+}
